@@ -1,0 +1,39 @@
+<html>
+    <head>
+        <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-firestore.js"></script>
+        <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyC0Icjhyr_ydgYbiiZaWPy6K5yQVMgnPZY",
+            authDomain: "spectre-13685.firebaseapp.com",
+            databaseURL: "https://spectre-13685.firebaseio.com",
+            projectId: "spectre-13685",
+            storageBucket: "spectre-13685.appspot.com",
+            messagingSenderId: "646451586951",
+            appId: "1:646451586951:web:8c7bf899cd7ad482"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Fetch role data
+        var db = firebase.firestore();
+        var periodData = [];
+        db.collection('periods').get().then((qr) => {
+            qr.forEach((doc) => {
+                periodData.push(doc.data());
+            });
+        });
+
+        var userId = undefined;
+        const registerUser = () => {
+            
+        };
+        </script>
+    </head>
+    <body>
+        Hello, world!
+        <div>
+            Enter the game...
+            <button onclick=registerUser()>Go</button>
+        </div>
+    </body>
+</html>
