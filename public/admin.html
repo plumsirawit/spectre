@@ -52,11 +52,17 @@
         const reset = () => {
             callFunction('resetUsers', {pass: 'shitshitshit'}, (h) => {});
         }
+        const start = () => {
+            callFunction('startGame', {pass: 'shitshitshit'}, (h) => {});
+        }
         </script>
     </head>
     <body>
-        <button id="reset" onclick=reset()>Reset Data</button>
-        <ul id="userList">
-        </ul>
+        <div id="prepdiv">
+            <button id="reset" onclick=reset()>Reset Data</button>
+            <ul id="userList">
+            </ul>
+            <button id="start" onclick=start()>Start Game</button>
+        </div>
     </body>
 </html>

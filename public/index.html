@@ -29,17 +29,95 @@
             var nn = $('#nntxt').val();
             console.log('DEBUG Nickname',nn);
             callFunction('registerUser', {name: nn}, (Http) => {
-                userId = Http.responseText;
+                if(Http.responseText == '__error1'){
+                    alert('Name not found. Website Error.');
+                    userId = undefined;
+                }else if(Http.responseText == '__error2'){
+                    alert('The room is full. You cannot register.');
+                    userId = undefined;
+                }else if(Http.responseText == '__error3'){
+                    alert('Nickname already in use. Please select another nickname.');
+                    userId = undefined;
+                }else{
+                    $('#regisButton').hide();
+                    $('#nntxt').prop('disabled', true);
+                    userId = Http.responseText;
+                }
             });
         };
+        var userRole = undefined;
+        var userRoleNumber = -1;
+        var curPeriod = 'none';
+        const fetchCard = () => {
+            db.collection('settings').doc('settings').get().then((doc) => {
+                curPeriod = doc.data().currentPeriod;
+                if(curPeriod == 'none'){
+                    $('#periodSpan').html('not selected yet');
+                }else{
+                    $('#periodSpan').html(curPeriod);
+                }
+            }).then(() => {
+                if(userId){
+                    return db.collection('users').where('uid','==',userId).get().then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                            userRoleNumber = doc.data().role;
+                        });
+                    });
+                }else{
+                    userRoleNumber = -1;
+                    return Promise.resolve();
+                }
+            }).then(() => {
+                if(userRoleNumber != -1){
+                    return db.collection('periods').where('name','==',curPeriod).get().then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                            userRole = doc.data().roles[userRoleNumber];
+                            $('#roleSpan').html(userRole);
+                        });
+                    });
+                }else{
+                    userRole = undefined;
+                    $('#roleSpan').html('not selected yet');
+                    return Promise.resolve();
+                }
+            });
+        }
+        $(document).ready(() => {
+            $('#warndiv').hide();
+            $('#carddiv').hide();
+            $('#prepdiv').show();
+            db.collection('settings').doc('settings').onSnapshot((doc) => {
+                if(doc.data().gameReady){
+                    $('#prepdiv').hide();
+                    if(userId){
+                        fetchCard();
+                        $('#carddiv').show();
+                    }else{
+                        $('#warndiv').show();
+                    }
+                }else{
+                    $('#warndiv').hide();
+                    $('#carddiv').hide();
+                    $('#prepdiv').show();
+                }
+            });
+        })
         </script>
     </head>
     <body>
         Hello, world!
-        <div>
+        <div id="prepdiv">
             Enter the game...
             <input type="text" placeholder="Nickname" id="nntxt">
-            <button onclick=registerUser()>Go</button>
+            <button id="regisButton" onclick=registerUser()>Go</button>
+        </div>
+        <div id="carddiv">
+            <p>The period is: <span id="periodSpan"></span></p>
+            <p>Your role is: <span id="roleSpan"></span></p>
+        </div>
+        <div id="warndiv">
+            User not registered... <br>
+            Please wait until the round ends first.
         </div>
     </body>
 </html>
