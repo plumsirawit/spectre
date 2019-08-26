@@ -1,7 +1,9 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
-
+const cors = require('cors')({
+  origin: true
+});
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
 //
@@ -10,24 +12,26 @@ admin.initializeApp(functions.config().firebase);
 // });
 let db = admin.firestore();
 exports.registerUser = functions.region('asia-northeast1').https.onRequest((req, res) => {
-	var result = '';
-	var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	var charactersLength = characters.length;
-	for(var i = 0; i < 16; i++){
-		result += characters.charAt(Math.floor(Math.random() * charactersLength));
-	}
-	if(!req.query.name){
-		res.send('No name found');
-	}else{
-		var name = req.query.name;
-		return db.collection('users').add({
-			uid: result,
-			name: name,
-			role: -1
-		}).then(ref => {
-			res.send(result);
-		});
-	}
+  cors(req, res, () => {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for(var i = 0; i < 16; i++){
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    if(!req.query.name){
+      res.send('No name found');
+    }else{
+      var name = req.query.name;
+      return db.collection('users').add({
+        uid: result,
+        name: name,
+        role: -1
+      }).then(ref => {
+        res.send(result);
+      });
+    }
+  });
 });
 
 // The following function is copied from the firebase guide
@@ -71,11 +75,13 @@ function deleteQueryBatch(db, query, batchSize, resolve, reject) {
     .catch(reject);
 }
 exports.resetUsers = functions.region('asia-northeast1').https.onRequest((req, res) => {
-	if(req.query.pass == 'shitshitshit'){
-		return deleteCollection(db, 'users', 32).then(() => {
-			res.send('OK');
-		});
-	}else{
-		res.send('Unauthorized');
-	}
+  cors(req, res, () => {
+    if(req.query.pass == 'shitshitshit'){
+      return deleteCollection(db, 'users', 32).then(() => {
+        res.send('OK');
+      });
+    }else{
+      res.send('Unauthorized');
+    }
+  });
 });

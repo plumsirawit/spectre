@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-firestore.js"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyC0Icjhyr_ydgYbiiZaWPy6K5yQVMgnPZY",
+            authDomain: "spectre-13685.firebaseapp.com",
+            databaseURL: "https://spectre-13685.firebaseio.com",
+            projectId: "spectre-13685",
+            storageBucket: "spectre-13685.appspot.com",
+            messagingSenderId: "646451586951",
+            appId: "1:646451586951:web:8c7bf899cd7ad482"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Fetch role data
+        var db = firebase.firestore();
+        var periodData = [];
+        db.collection('periods').get().then((qr) => {
+            qr.forEach((doc) => {
+                periodData.push(doc.data());
+            });
+        });
+        var userNames = [];
+        $(document).ready(() => {
+            db.collection('users').onSnapshot((querySnapshot) => {
+                userNames = [];
+                querySnapshot.forEach((doc) => {
+                    userNames.push(doc.data().name);
+                });
+                var clist = '';
+                userNames.forEach((it, idx) => {
+                    clist += '<li>';
+                    clist += it;
+                    clist += '</li>';
+                });
+                console.log(clist);
+                $('#userList').html(clist);
+            });
+        });
+        const callFunction = (fname, params, callback) => {
+            const Http = new XMLHttpRequest();
+            const url = 'https://asia-northeast1-spectre-13685.cloudfunctions.net/' + fname;
+            Http.open("POST", url + '?' + jQuery.param(params));
+            Http.onreadystatechange = (e) => {
+                callback(Http);
+            }
+            Http.send();
+        }
+        const reset = () => {
+            callFunction('resetUsers', {pass: 'shitshitshit'}, (h) => {});
+        }
+        </script>
+    </head>
+    <body>
+        <button id="reset" onclick=reset()>Reset Data</button>
+        <ul id="userList">
+        </ul>
+    </body>
+</html>

@@ -2,6 +2,7 @@
     <head>
         <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-app.js"></script>
         <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-firestore.js"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
         <script>
         var firebaseConfig = {
             apiKey: "AIzaSyC0Icjhyr_ydgYbiiZaWPy6K5yQVMgnPZY",
@@ -13,19 +14,23 @@
             appId: "1:646451586951:web:8c7bf899cd7ad482"
         };
         firebase.initializeApp(firebaseConfig);
-
-        // Fetch role data
         var db = firebase.firestore();
-        var periodData = [];
-        db.collection('periods').get().then((qr) => {
-            qr.forEach((doc) => {
-                periodData.push(doc.data());
-            });
-        });
-
         var userId = undefined;
+        const callFunction = (fname, params, callback) => {
+            const Http = new XMLHttpRequest();
+            const url = 'https://asia-northeast1-spectre-13685.cloudfunctions.net/' + fname;
+            Http.open("POST", url + '?' + jQuery.param(params));
+            Http.onreadystatechange = (e) => {
+                callback(Http);
+            }
+            Http.send();
+        }
         const registerUser = () => {
-            
+            var nn = $('#nntxt').val();
+            console.log('DEBUG Nickname',nn);
+            callFunction('registerUser', {name: nn}, (Http) => {
+                userId = Http.responseText;
+            });
         };
         </script>
     </head>
@@ -33,6 +38,7 @@
         Hello, world!
         <div>
             Enter the game...
+            <input type="text" placeholder="Nickname" id="nntxt">
             <button onclick=registerUser()>Go</button>
         </div>
     </body>
