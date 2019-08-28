@@ -14,10 +14,7 @@
             appId: "1:646451586951:web:8c7bf899cd7ad482"
         };
         firebase.initializeApp(firebaseConfig);
-
-        // Fetch role data
         var db = firebase.firestore();
-        var userNames = [];
         const callFunction = (fname, params, callback) => {
             const Http = new XMLHttpRequest();
             const url = 'https://asia-northeast1-spectre-13685.cloudfunctions.net/' + fname;
@@ -29,46 +26,39 @@
             }
             Http.send();
         }
-        const refreshList = () => {
-            callFunction('getUsers', {}, (h) => {
-                var resjson = JSON.parse(h.responseText);
-                userNames = resjson.resArr;
-                var clist = '';
-                userNames.forEach((it, idx) => {
-                    clist += '<li id=\"item' + idx + "\">";
-                    clist += it;
-                    clist += '<button onclick=\"deleteItem(' + idx + ')\">';
-                    clist += '</li>';
-                });
-                console.log(clist);
-                $('#userList').html(clist);
-            });
-        };
-        const deleteItem = (idx) => {
-            callFunction('deleteUser', {name: userNames[idx], pass: 'shitshitshit'}, (h) => {refreshList()});
-        }
-        $(document).ready(() => {
-            $('#reveal').hide();
-            setInterval(refreshList, 5000);
-        });
-        const reset = () => {
-            callFunction('resetUsers', {pass: 'shitshitshit'}, (h) => {});
-        }
-        const start = () => {
-            callFunction('startGame', {pass: 'shitshitshit'}, (h) => {
-                if(h.responseText == 'OK'){
-                    $('#reveal').show();
+        const submit = () => {
+            var roles = [];
+            for(var i = 1; i <= 10; i++){
+                var cobj = {
+                    role: $('#role'+i).val(),
+                    index: i,
+                    description: $('#desc'+i).val()
                 }
-            });
+                roles.push(cobj);
+            }
+            var obj = {
+                name: $('#name').val(),
+                roles: JSON.stringify(roles)
+            }
+            callFunction(addPeriod, obj, (h) => {});
         }
         </script>
     </head>
     <body>
-        <div id="prepdiv">
-            <button id="reset" onclick=reset()>Reset Game</button>
-            <ul id="userList">
-            </ul>
-            <button id="start" onclick=start()>Start Game</button>
+        <h3>Usage: Add a new age(period), describing roles</h3>
+        <div>
+            Name<input type="text" id="name"><br>
+            1<input type="text" id="role1"><input type="text" id="desc1"><br>
+            2<input type="text" id="role2"><input type="text" id="desc2"><br>
+            3<input type="text" id="role3"><input type="text" id="desc3"><br>
+            4<input type="text" id="role4"><input type="text" id="desc4"><br>
+            5<input type="text" id="role5"><input type="text" id="desc5"><br>
+            6<input type="text" id="role6"><input type="text" id="desc6"><br>
+            7<input type="text" id="role7"><input type="text" id="desc7"><br>
+            8<input type="text" id="role8"><input type="text" id="desc8"><br>
+            9<input type="text" id="role9"><input type="text" id="desc9"><br>
+            10<input type="text" id="role10"><input type="text" id="desc10"><br>
+            <button onclick="submit()">Submit</button>
         </div>
     </body>
 </html>

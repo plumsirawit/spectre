@@ -21,7 +21,9 @@
             const url = 'https://asia-northeast1-spectre-13685.cloudfunctions.net/' + fname;
             Http.open("POST", url + '?' + jQuery.param(params));
             Http.onreadystatechange = (e) => {
-                callback(Http);
+                if(Http.readyState == 4 && Http.status == 200){
+                    callback(Http);
+                }
             }
             Http.send();
         }
@@ -48,6 +50,7 @@
         var userRole = undefined;
         var userRoleNumber = -1;
         var curPeriod = 'none';
+        var description = '';
         const fetchCard = () => {
             db.collection('settings').doc('settings').get().then((doc) => {
                 curPeriod = doc.data().currentPeriod;
@@ -58,34 +61,33 @@
                 }
             }).then(() => {
                 if(userId){
-                    return db.collection('users').where('uid','==',userId).get().then((querySnapshot) => {
-                        querySnapshot.forEach((doc) => {
-                            userRoleNumber = doc.data().role;
+                    callFunction('getUserRole', {uid: userId}, (Http) => {
+                        userRoleNumber = Http.responseText;
+                        db.collection('periods').where('name','==',curPeriod).get().then((querySnapshot) => {
+                            querySnapshot.forEach((doc) => {
+                                doc.ref.collection('roles').where('index','==',userRoleNumber).get().then((qrs) => {
+                                    qrs.forEach((d) => {
+                                        userRole = d.data().role;
+                                        description = d.data().description;
+                                        $('#roleSpan').html(userRole);
+                                        $('#descSpan').html(description);
+                                    });
+                                });
+                            });
                         });
                     });
                 }else{
                     userRoleNumber = -1;
-                    return Promise.resolve();
-                }
-            }).then(() => {
-                if(userRoleNumber != -1){
-                    return db.collection('periods').where('name','==',curPeriod).get().then((querySnapshot) => {
-                        querySnapshot.forEach((doc) => {
-                            userRole = doc.data().roles[userRoleNumber];
-                            $('#roleSpan').html(userRole);
-                        });
-                    });
-                }else{
                     userRole = undefined;
                     $('#roleSpan').html('not selected yet');
-                    return Promise.resolve();
+                    $('#descSpan').html('not found');
                 }
             });
         }
         $(document).ready(() => {
             $('#warndiv').hide();
             $('#carddiv').hide();
-            $('#prepdiv').show();
+            $('#prepdiv').hide();
             db.collection('settings').doc('settings').onSnapshot((doc) => {
                 if(doc.data().gameReady){
                     $('#prepdiv').hide();
@@ -114,6 +116,7 @@
         <div id="carddiv">
             <p>The period is: <span id="periodSpan"></span></p>
             <p>Your role is: <span id="roleSpan"></span></p>
+            <p>Description: <span id="descSpan"></span></p>
         </div>
         <div id="warndiv">
             User not registered... <br>

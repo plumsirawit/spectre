@@ -12,7 +12,7 @@ const cors = require('cors')({
 // });
 let db = admin.firestore();
 exports.registerUser = functions.region('asia-northeast1').https.onRequest((req, res) => {
-  cors(req, res, () => {
+  return cors(req, res, () => {
     db.collection('users').get().then((querySnapshot) => {
       var cnt = 0;
       querySnapshot.forEach((doc) => {
@@ -23,7 +23,7 @@ exports.registerUser = functions.region('asia-northeast1').https.onRequest((req,
       });
       return cnt;
     }).then((cnt) => {
-      if(cnt == 7){
+      if(cnt == 11){
         return Promise.resolve('__error2');
       }else if(cnt == -1){
         return Promise.resolve('__error3');  
@@ -94,9 +94,11 @@ function deleteQueryBatch(db, query, batchSize, resolve, reject) {
     .catch(reject);
 }
 exports.resetUsers = functions.region('asia-northeast1').https.onRequest((req, res) => {
-  cors(req, res, () => {
+  return cors(req, res, () => {
     if(req.query.pass == 'shitshitshit'){
       return deleteCollection(db, 'users', 32).then(() => {
+        db.collection('settings').doc('settings').update({gameReady: false});
+      }).then(() => {
         res.send('OK');
       });
     }else{
@@ -104,8 +106,23 @@ exports.resetUsers = functions.region('asia-northeast1').https.onRequest((req, r
     }
   });
 });
+const shuffle = (array) => {
+	var currentIndex = array.length;
+	var temporaryValue, randomIndex;
+	// While there remain elements to shuffle...
+	while (0 !== currentIndex) {
+		// Pick a remaining element...
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex -= 1;
+		// And swap it with the current element.
+		temporaryValue = array[currentIndex];
+		array[currentIndex] = array[randomIndex];
+		array[randomIndex] = temporaryValue;
+	}
+	return array;
+};
 exports.startGame = functions.region('asia-northeast1').https.onRequest((req, res) => {
-  cors(req, res, () => {
+  return cors(req, res, () => {
     if(req.query.pass == 'shitshitshit'){
       // Random periods first, then 'select-permute' roles.
       return db.collection('periods').get().then((querySnapshot) => {
@@ -120,7 +137,11 @@ exports.startGame = functions.region('asia-northeast1').https.onRequest((req, re
       }).then(() => {
         return db.collection('users').get();
       }).then((querySnapshot) => {
-        var shufArr = shuffle([0,1,2,3,4,5,6]);
+        var baseArr = [];
+        for(var i = 1; i <= 10; i++){
+          baseArr.push(i);
+        }
+        var shufArr = [0].concat(shuffle(baseArr));
         var idx = 0;
         var promises = [];
         querySnapshot.forEach((doc) => {
@@ -129,10 +150,75 @@ exports.startGame = functions.region('asia-northeast1').https.onRequest((req, re
         });
         return Promise.all(promises);
       }).then(() => {
-        res.send('OK');
+        return db.collection('settings').doc('settings').update({gameReady: true});
+      }).then(() => {
+        return Promise.resolve(res.send('OK'));
       });
     }else{
       res.send('Unauthorized');
     }
+  });
+});
+exports.getUserRole = functions.region('asia-northeast1').https.onRequest((req, res) => {
+  return cors(req, res, () => {
+    if(!req.query.uid){
+      return res.send('__error1');
+    }else{
+      var uid = req.query.uid;
+      return db.collection('users').where('uid','==',uid).get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          return res.send(doc.data().role.toString());
+        });
+        return res.send('__error2');
+      });
+    }
+  });
+});
+exports.getUsers = functions.region('asia-northeast1').https.onRequest((req, res) => {
+  return cors(req, res, () => {
+    return db.collection('users').get().then((querySnapshot) => {
+      var arr = [];
+      querySnapshot.forEach((doc) => {
+        arr.push(doc.data().name);
+      });
+      return Promise.resolve(arr);
+    }).then((arr) => {
+      return res.send(JSON.stringify({resArr: arr}));
+    });
+  });
+});
+exports.deleteUser = functions.region('asia-northeast1').https.onRequest((req, res) => {
+  return cors(req, res, () => {
+    if(!req.query.name){
+      return res.send('__error1');
+    }else if(req.query.pass != 'shitshitshit'){
+      return res.send('__error2');
+    }else{
+      var name = req.query.name;
+      return db.collection('users').where('name','==',name).get().then((querySnapshot) => {
+        var sel = undefined;
+        querySnapshot.forEach((doc) => {
+          sel = doc;
+        });
+        if(sel){
+          return sel.ref.delete();
+        }
+      }).then(() => {
+        res.send('OK');
+      })
+    }
+  })
+});
+exports.addPeriod = functions.region('asia-northeast1').https.onRequest((req, res) => {
+  return cors(req, res, () => {
+    var name = req.query.name;
+    var roles = JSON.parse(req.query.roles);
+    return db.collection('periods').add({name: name}).then((ref) => {
+      roles.forEach((role) => {
+        ref.collection('roles').add(role);
+      });
+    }).then(() => {
+      res.send('OK');
+    });
   });
 });
