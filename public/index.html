@@ -1,9 +1,22 @@
 <html>
-    <head>
-        <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-firestore.js"></script>
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-        <script>
+
+<head>
+    <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.4.0/firebase-firestore.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Prompt:400,500,600&display=swap" rel="stylesheet">
+    <title>Spectre</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8"/>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        h1,h2,h3 {
+            font-family: 'Prompt'
+        }
+    </style>
+    <script>
         var firebaseConfig = {
             apiKey: "AIzaSyC0Icjhyr_ydgYbiiZaWPy6K5yQVMgnPZY",
             authDomain: "spectre-13685.firebaseapp.com",
@@ -21,7 +34,7 @@
             const url = 'https://asia-northeast1-spectre-13685.cloudfunctions.net/' + fname;
             Http.open("POST", url + '?' + jQuery.param(params));
             Http.onreadystatechange = (e) => {
-                if(Http.readyState == 4 && Http.status == 200){
+                if (Http.readyState == 4 && Http.status == 200) {
                     callback(Http);
                 }
             }
@@ -29,18 +42,18 @@
         }
         const registerUser = () => {
             var nn = $('#nntxt').val();
-            console.log('DEBUG Nickname',nn);
-            callFunction('registerUser', {name: nn}, (Http) => {
-                if(Http.responseText == '__error1'){
+            console.log('DEBUG Nickname', nn);
+            callFunction('registerUser', { name: nn }, (Http) => {
+                if (Http.responseText == '__error1') {
                     alert('Name not found. Website Error.');
                     userId = undefined;
-                }else if(Http.responseText == '__error2'){
+                } else if (Http.responseText == '__error2') {
                     alert('The room is full. You cannot register.');
                     userId = undefined;
-                }else if(Http.responseText == '__error3'){
+                } else if (Http.responseText == '__error3') {
                     alert('Nickname already in use. Please select another nickname.');
                     userId = undefined;
-                }else{
+                } else {
                     $('#regisButton').hide();
                     $('#nntxt').prop('disabled', true);
                     userId = Http.responseText;
@@ -54,18 +67,18 @@
         const fetchCard = () => {
             db.collection('settings').doc('settings').get().then((doc) => {
                 curPeriod = doc.data().currentPeriod;
-                if(curPeriod == 'none'){
+                if (curPeriod == 'none') {
                     $('#periodSpan').html('not selected yet');
-                }else{
+                } else {
                     $('#periodSpan').html(curPeriod);
                 }
             }).then(() => {
-                if(userId){
-                    callFunction('getUserRole', {uid: userId}, (Http) => {
+                if (userId) {
+                    callFunction('getUserRole', { uid: userId }, (Http) => {
                         userRoleNumber = parseInt(Http.responseText, 10);
-                        db.collection('periods').where('name','==',curPeriod).get().then((querySnapshot) => {
+                        db.collection('periods').where('name', '==', curPeriod).get().then((querySnapshot) => {
                             querySnapshot.forEach((doc) => {
-                                doc.ref.collection('roles').where('index','==',userRoleNumber).get().then((qrs) => {
+                                doc.ref.collection('roles').where('index', '==', userRoleNumber).get().then((qrs) => {
                                     qrs.forEach((d) => {
                                         userRole = d.data().role;
                                         description = d.data().description;
@@ -76,7 +89,7 @@
                             });
                         });
                     });
-                }else{
+                } else {
                     userRoleNumber = -1;
                     userRole = undefined;
                     $('#roleSpan').html('not selected yet');
@@ -89,38 +102,43 @@
             $('#carddiv').hide();
             $('#prepdiv').hide();
             db.collection('settings').doc('settings').onSnapshot((doc) => {
-                if(doc.data().gameReady){
+                if (doc.data().gameReady) {
                     $('#prepdiv').hide();
-                    if(userId){
+                    if (userId) {
                         fetchCard();
                         $('#carddiv').show();
-                    }else{
+                    } else {
                         $('#warndiv').show();
                     }
-                }else{
+                } else {
                     $('#warndiv').hide();
                     $('#carddiv').hide();
                     $('#prepdiv').show();
                 }
             });
         })
-        </script>
-    </head>
-    <body>
-        Hello, world!
-        <div id="prepdiv">
-            Enter the game...
-            <input type="text" placeholder="Nickname" id="nntxt">
-            <button id="regisButton" onclick=registerUser()>Go</button>
+    </script>
+</head>
+
+<body style="background-image: url(bg.jpg); background-size: cover; background-position: 'center'">
+    <div class="container d-flex" style="align-items: center; justify-content: center; height: 100vh">
+
+        <div id="prepdiv" class="card rounded shadow p-5 pl-3 pr-3" style="max-width: 480px; width: 480px">
+            <h3 class="text-center mb-4 ">กรุณาใส่ชื่อเล่น</h3>
+            <input class="form-control mb-3" type="text" placeholder="Nickname" id="nntxt">
+            <button type="submit" class="btn btn-primary" id="regisButton" onclick=registerUser()>Submit</button>
         </div>
-        <div id="carddiv">
-            <p>The period is: <span id="periodSpan"></span></p>
-            <p>Your role is: <span id="roleSpan"></span></p>
-            <p>Description: <span id="descSpan"></span></p>
+
+        <div id="carddiv" class="rounded card shadow p-5 pl-3 pr-3" style="max-width: 480px; width: 480px">
+            <h3 class="class-title text-center" id="periodSpan"></span></h3>
+            <h4 class="text-center">Role: <span id="roleSpan"></span></h4>
+            <p><span id="descSpan"></span></p>
         </div>
-        <div id="warndiv">
+        <div id="warndiv" class="rounded card shadow p-5 pl-3 pr-3" style="max-width: 480px; width: 480px">
             User not registered... <br>
             Please wait until the round ends first.
         </div>
-    </body>
+    </div>
+</body>
+
 </html>
