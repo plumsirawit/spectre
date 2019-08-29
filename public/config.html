@@ -28,6 +28,11 @@
         }
         const submit = () => {
             var roles = [];
+            roles.push({
+                role: 'spy',
+                index: 0,
+                description: 'spydesc'
+            });
             for(var i = 1; i <= 10; i++){
                 var cobj = {
                     role: $('#role'+i).val(),
@@ -40,7 +45,11 @@
                 name: $('#name').val(),
                 roles: JSON.stringify(roles)
             }
-            callFunction(addPeriod, obj, (h) => {});
+            callFunction('addPeriod', obj, (h) => {
+                if(h.responseText == 'OK'){
+                    alert('Done!');
+                }
+            });
         }
         </script>
     </head>

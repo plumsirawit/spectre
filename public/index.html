@@ -62,7 +62,7 @@
             }).then(() => {
                 if(userId){
                     callFunction('getUserRole', {uid: userId}, (Http) => {
-                        userRoleNumber = Http.responseText;
+                        userRoleNumber = parseInt(Http.responseText, 10);
                         db.collection('periods').where('name','==',curPeriod).get().then((querySnapshot) => {
                             querySnapshot.forEach((doc) => {
                                 doc.ref.collection('roles').where('index','==',userRoleNumber).get().then((qrs) => {
